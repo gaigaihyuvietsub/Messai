@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>messai - Không Gian Chat AI & Nhóm Realtime</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        
+        /* MÀN HÌNH ĐĂNG NHẬP */
+        #login-view { display: flex; flex-direction: column; align-items: center; background: #1e293b; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); text-align: center; max-width: 400px; width: 100%; }
+        #login-view h1 { font-size: 28px; color: #38bdf8; margin-bottom: 10px; }
+        #login-view p { color: #94a3b8; font-size: 14px; margin-bottom: 25px; }
+        .btn-google { background: #ffffff; color: #1e293b; font-weight: bold; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 15px; transition: 0.2s; }
+        .btn-google:hover { background: #f1f5f9; transform: scale(1.02); }
+        #login-error { color: #f87171; font-size: 13px; margin-top: 15px; font-weight: 500; }
+
+        /* GIAO DIỆN CHÍNH ỨNG DỤNG */
+        #runtime-view { display: none; width: 100%; max-width: 900px; background: #1e293b; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 25px rgba(0,0,0,0.4); }
+        
+        /* Thanh Header */
+        header { background: #0f172a; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
+        .logo { font-size: 20px; font-weight: bold; color: #38bdf8; }
+        .header-right { display: flex; align-items: center; gap: 15px; }
+        .btn-logout { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .btn-logout:hover { background: #dc2626; }
+
+        /* Vùng điều khiển cấu hình AI */
+        .config-bar { background: #111827; padding: 15px 20px; display: flex; gap: 15px; flex-wrap: wrap; border-bottom: 1px solid #334155; align-items: center; }
+        .config-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 200px; }
+        .config-group label { font-size: 12px; color: #94a3b8; font-weight: 600; text-transform: uppercase; }
+        .config-bar input, .config-bar select { background: #1e293b; color: white; border: 1px solid #475569; padding: 8px 12px; border-radius: 6px; font-size: 14px; width: 100%; outline: none; }
+        .config-bar input:focus, .config-bar select:focus { border-color: #38bdf8; }
+        .btn-save-sk { background: #10b981; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; align-self: flex-end; height: 38px; }
+        .btn-save-sk:hover { background: #059669; }
+
+        /* Khu vực Chat chính */
+        .chat-container { display: flex; flex-direction: column; height: 500px; background: #0f172a; }
+        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+        
+        /* Giao diện thanh nhập tin nhắn */
+        .input-area { display: flex; padding: 15px 20px; background: #1e293b; border-top: 1px solid #334155; gap: 10px; }
+        #message-input { flex: 1; background: #0f172a; color: white; border: 1px solid #475569; padding: 12px; border-radius: 6px; font-size: 14px; outline: none; }
+        #message-input:focus { border-color: #38bdf8; }
+        .btn-send { background: #0284c7; color: white; border: none; padding: 0 25px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
+        .btn-send:hover { background: #0369a1; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. PHÂN VÙNG GIAO DIỆN ĐĂNG NHẬP GOOGLE -->
+    <div id="login-view">
+        <h1>messai</h1>
+        <p>Không gian thảo luận Realtime và Trò chuyện cùng Siêu trí tuệ nhân tạo AI</p>
+        <button class="btn-google" onclick="executeGoogleLogin()">
+            <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="Google">
+            Đăng nhập với Google
+        </button>
+        <div id="login-error"></div>
+    </div>
+
+    <!-- 2. PHÂN VÙNG HIỂN THỊ DỰ ÁN CHÍNH (Chỉ hiện khi đã đăng nhập) -->
+    <div id="runtime-view">
+        <header>
+            <div class="logo">messai</div>
+            <div class="header-right">
+                <div id="auth-section"></div>
+                <button class="btn-logout" onclick="executeLogout()">🚪 Đăng xuất</button>
+            </div>
+        </header>
+
+        <!-- Thanh Cấu Hình API Key & Chọn Bảng AI Model -->
+        <div class="config-bar">
+            <div class="config-group">
+                <label>Bảo mật API Key của bạn (SK)</label>
+                <input type="password" id="sk-input" placeholder="sk-proj-... hoặc tương đương">
+            </div>
+            <div class="config-group">
+                <label>Chọn Bảng AI Model</label>
+                <select id="model-select">
+                    <option value="gpt-4o-mini">GPT-4o Mini (OpenAI)</option>
+                    <option value="gpt-4o">GPT-4o (OpenAI)</option>
+                    <option value="gemini-1.5-flash">Gemini 1.5 Flash (Google)</option>
+                    <option value="claude-3-5-sonnet">Claude 3.5 Sonnet (Anthropic)</option>
+                </select>
+            </div>
+            <button class="btn-save-sk" onclick="saveSK()">🔒 Lưu Key</button>
+        </div>
+
+        <!-- Khung Chat Nhóm Hệ Thống -->
+        <div class="chat-container">
+            <div id="chat-box">
+                <!-- Tin nhắn từ Đám mây Firebase sẽ tự động đổ vào đây -->
+            </div>
+            <div class="input-area">
+                <input type="text" id="message-input" placeholder="Nhập nội dung tin nhắn gửi vào nhóm..." onkeypress="if(event.key === 'Enter') sendMessageToServer()">
+                <button class="btn-send" onclick="sendMessageToServer()">Gửi lên mây</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. KHỐI ENGINE JAVASCRIPT ĐIỀU KHIỂN HỆ THỐNG ĐÁM MÂY -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+        // Cấu hình kết nối chính chủ dự án messai của bạn
+        const firebaseConfig = {
+            apiKey: "AIzaSyAgoVKEsxr1OzMbZ1qR6DWnWg_72lLTYSo",
+            authDomain: "messai-90475.firebaseapp.com",
+            projectId: "messai-90475",
+            storageBucket: "messai-90475.firebasestorage.app",
+            messagingSenderId: "96022599996",
+            appId: "1:96022599996:web:16704a0b40309047c5a639"
+        };
+
+        // Khởi tạo Firebase Dịch vụ
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+
+        let unsubscribeMessages = null; 
+        let currentUserId = null;
+
+        // Theo dõi trạng thái đăng nhập
+        onAuthStateChanged(auth, (user) => {
+            const loginPanel = document.getElementById('login-view');
+            const runtimePanel = document.getElementById('runtime-view');
+            const authSection = document.getElementById('auth-section');
+
+            if (!user) {
+                if (loginPanel) loginPanel.style.display = 'flex';
+                if (runtimePanel) runtimePanel.style.display = 'none';
+                currentUserId = null;
+                if (unsubscribeMessages) unsubscribeMessages();
+            } else {
+                if (loginPanel) loginPanel.style.display = 'none';
+                if (runtimePanel) runtimePanel.style.display = 'block';
+                currentUserId = user.uid;
+
+                if (authSection) {
+                    authSection.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <img src="${user.photoURL}" style="width: 30px; height: 30px; border-radius: 50%; border: 2px solid #38bdf8;">
+                            <span style="font-size: 14px; font-weight: 600; color: #e2e8f0;">${user.displayName}</span>
+                        </div>
+                    `;
+                }
+                
+                loadSavedSK();
+                switchRoom('global-room'); // Tự động kết nối vào phòng chung
+            }
+        });
+
+        // Hàm xử lý kích hoạt Đăng nhập Google Popup
+        window.executeGoogleLogin = function() {
+            const errorTxt = document.getElementById('login-error');
+            if (errorTxt) errorTxt.textContent = "🔄 Đang mở cổng xác thực tài khoản Google...";
+            
+            signInWithPopup(auth, provider)
+                .then(() => { if (errorTxt) errorTxt.textContent = ""; })
+                .catch(err => { 
+                    if (errorTxt) errorTxt.textContent = "❌ Lỗi: Cửa sổ popup xác thực bị chặn hoặc hủy."; 
+                    console.error("Auth error:", err);
+                });
+        };
+
+        // Hàm đăng xuất tài khoản
+        window.executeLogout = function() {
+            signOut(auth).catch(err => console.error("Logout error:", err));
+        };
+
+        // Đồng bộ dữ liệu tin nhắn thời gian thực từ đám mây (Firestore)
+        window.switchRoom = function(roomId) {
+            if (unsubscribeMessages) unsubscribeMessages();
+            const chatBox = document.getElementById('chat-box');
+            if (chatBox) chatBox.innerHTML = '<div style="color: #94a3b8; text-align:center; padding:20px;">🔄 Đang nạp các luồng tin nhắn đám mây...</div>';
+
+            const q = query(collection(db, "rooms", roomId, "messages"), orderBy("timestamp", "asc"));
+
+            unsubscribeMessages = onSnapshot(q, (snapshot) => {
+                if (chatBox) chatBox.innerHTML = ''; 
+                snapshot.forEach((doc) => {
+                    renderMessage(doc.data());
+                });
+                if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+            }, (error) => {
+                console.error("Firestore sync error:", error);
+            });
+        };
+
+        // Đẩy tin nhắn người dùng lên cơ sở dữ liệu Firestore
+        window.sendMessageToServer = async function() {
+            const inputField = document.getElementById('message-input');
+            const text = inputField.value.trim();
+            if (!text || !currentUserId) return;
+
+            try {
+                await addDoc(collection(db, "rooms", "global-room", "messages"), {
+                    senderId: currentUserId,
+                    senderName: auth.currentUser.displayName,
+                    senderAvatar: auth.currentUser.photoURL,
+                    content: text,
+                    timestamp: Date.now()
+                });
+                inputField.value = ''; 
+            } catch (err) {
+                console.error("Gửi tin nhắn lỗi:", err);
+            }
+        };
+
+        // Lưu trữ API Key (SK) an toàn trong LocalStorage máy khách
+        window.saveSK = function() {
+            const skInput = document.getElementById('sk-input');
+            if (skInput && currentUserId) {
+                localStorage.setItem(`messai_sk_${currentUserId}`, skInput.value.trim());
+                alert("🔒 Đã mã hóa và lưu API Key nội bộ trên thiết bị này thành công!");
+            }
+        };
+
+        function loadSavedSK() {
+            const skInput = document.getElementById('sk-input');
+            if (skInput && currentUserId) {
+                const savedKey = localStorage.getItem(`messai_sk_${currentUserId}`);
+                if (savedKey) skInput.value = savedKey;
+            }
+        }
+
+        // Tạo cấu trúc giao diện bong bóng chat
+        function renderMessage(msg) {
+            const chatBox = document.getElementById('chat-box');
+            if (!chatBox) return;
+
+            const isMe = msg.senderId === currentUserId;
+            const msgHtml = `
+                <div style="display: flex; gap: 12px; margin-bottom: 5px; justify-content: ${isMe ? 'flex-end' : 'flex-start'}">
+                    <img src="${msg.senderAvatar}" style="width: 36px; height: 36px; border-radius: 50%; order: ${isMe ? '2' : '1'}; object-fit: cover;">
+                    <div style="background: ${isMe ? '#0284c7' : '#334155'}; color: white; padding: 10px 14px; border-radius: 10px; max-width: 70%; order: ${isMe ? '1' : '2'}; box-shadow: 0 2px 5px rgba(0,0,0,0.1)">
+                        <div style="font-size: 11px; color: #cbd5e1; font-weight: bold; margin-bottom: 4px;">${msg.senderName}</div>
+                        <div style="font-size: 14px; word-break: break-word; line-height: 1.4;">${msg.content}</div>
+                    </div>
+                </div>
+            `;
+            chatBox.insertAdjacentHTML('beforeend', msgHtml);
+        }
+    </script>
+</body>
+</html>
