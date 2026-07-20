@@ -3,140 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messai v9 - Autonomous Agent Matrix Platform</title>
+    <title>Messai Universe v15.5 - Fixed Layout & Governor</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        body { background-color: #020617; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 10px; overflow: hidden; }
         
-        #login-view { display: flex; flex-direction: column; align-items: center; background: #1e293b; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); text-align: center; max-width: 400px; width: 100%; }
-        #login-view h1 { font-size: 32px; color: #38bdf8; margin-bottom: 10px; font-weight: 800; }
-        .btn-google { background: #ffffff; color: #1e293b; font-weight: bold; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 15px; transition: 0.2s; }
-        .btn-google:hover { background: #f1f5f9; transform: scale(1.02); }
-        #login-error { color: #f87171; font-size: 13px; margin-top: 15px; font-weight: 500; text-align: center; max-width: 100%; word-break: break-word; }
-
-        #runtime-view { display: none; width: 100%; max-width: 1200px; background: #1e293b; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 25px rgba(0,0,0,0.4); }
+        #universe-container { width: 100%; max-width: 1350px; background: #0f172a; border-radius: 12px; overflow: hidden; border: 1px solid #1e293b; display: flex; flex-direction: column; }
+        header { background: #020617; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; }
+        .logo { font-size: 18px; font-weight: 800; color: #38bdf8; }
         
-        header { background: #0f172a; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
-        .logo { font-size: 22px; font-weight: 800; color: #38bdf8; }
-        .header-right { display: flex; align-items: center; gap: 15px; }
-        .btn-action { background: #334155; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
-        .btn-logout { background: #ef4444; }
-        .main-content { display: flex; height: 600px; background: #0f172a; }
+        .main-simulation { display: flex; height: 680px; background: #020617; }
         
-        .sidebar-left { width: 260px; background: #111827; border-right: 1px solid #334155; display: flex; flex-direction: column; padding: 15px 10px; gap: 6px; overflow-y: auto; }
-        .sidebar-title { font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase; padding: 5px 10px; letter-spacing: 0.5px; margin-top: 10px; }
-        .sidebar-title:first-child { margin-top: 0; }
-        .room-item { padding: 10px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; color: #94a3b8; display: flex; align-items: center; gap: 10px; }
-        .room-item.active { background: #0284c7; color: white; font-weight: 600; }
-        .room-item img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
-        .license-card { background: #1e293b; padding: 12px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 10px; }
-        .credit-balance { font-size: 16px; font-weight: 700; color: #38bdf8; margin-top: 4px; }
+        /* CẢI TIẾN THANH BÊN: Cho phép cuộn mượt mà, không bị che khuất bất kỳ nút nào */
+        .sidebar-control { width: 330px; background: #0f172a; border-right: 1px solid #1e293b; display: flex; flex-direction: column; padding: 15px; gap: 12px; overflow-y: auto; max-height: 680px; }
+        .sidebar-control::-webkit-scrollbar { width: 6px; }
+        .sidebar-control::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
 
-        .chat-container { flex: 1; display: flex; flex-direction: column; height: 100%; background: #0f172a; }
-        #chat-header-title { background: #1e293b; padding: 10px 20px; font-size: 14px; font-weight: 600; color: #38bdf8; border-bottom: 1px solid #334155; }
-        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
-        .input-area { display: flex; padding: 15px 20px; background: #1e293b; border-top: 1px solid #334155; gap: 12px; align-items: center; }
-        #message-input { flex: 1; background: #0f172a; color: white; border: 1px solid #475569; padding: 14px; border-radius: 6px; font-size: 14px; outline: none; }
-        .btn-send { background: #0284c7; color: white; border: none; padding: 0 25px; border-radius: 6px; cursor: pointer; font-weight: bold; height: 46px; }
-
-        .sidebar-right { width: 250px; background: #111827; border-left: 1px solid #334155; display: flex; flex-direction: column; padding: 15px 10px; gap: 8px; overflow-y: auto; }
-        .member-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 6px; transition: 0.2s; }
-        .member-item img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
-        .member-info { display: flex; flex-direction: column; min-width: 0; }
-        .member-name { font-size: 13px; font-weight: 600; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .member-status { font-size: 11px; font-weight: bold; transition: 0.2s; }
-        .status-idle { color: #64748b; }
-        .status-thinking { color: #fbbf24; animation: blink 1s infinite alternate; }
-        .status-typing { color: #10b981; }
-
-        @keyframes blink { from { opacity: 0.5; } to { opacity: 1; } }
-        #settings-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: #1e293b; padding: 30px; border-radius: 12px; width: 100%; max-width: 450px; border: 1px solid #475569; }
-        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
-        .form-group label { font-size: 12px; color: #94a3b8; font-weight: 600; text-transform: uppercase; }
-        .form-group input { background: #0f172a; color: white; border: 1px solid #475569; padding: 10px; border-radius: 6px; font-size: 14px; outline: none; }
+        .sidebar-title { font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .tab-btn { background: #3b82f6; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer; text-align: center; font-size: 13px; transition: 0.2s; width: 100%; }
+        .tab-btn:hover { background: #2563eb; }
+        .tab-btn:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
+        
+        .control-group { display: flex; flex-direction: column; gap: 5px; background: #020617; padding: 10px; border-radius: 8px; border: 1px solid #1e293b; }
+        .control-group label { font-size: 10px; color: #94a3b8; font-weight: 600; text-transform: uppercase; }
+        .control-group input, .control-group textarea { background: #0f172a; color: white; border: 1px solid #334155; padding: 8px; border-radius: 6px; outline: none; font-size: 12px; resize: none; width: 100%; }
+        
+        .viewport-area { flex: 1; position: relative; background: #000000; display: flex; justify-content: center; align-items: center; }
+        canvas { background: #000000; display: block; border-left: 1px solid #1e293b; }
+        
+        .monitor-card { background: #020617; padding: 10px; border-radius: 8px; border: 1px solid #1e293b; font-size: 11px; line-height: 1.6; }
+        .auth-box { background: rgba(56, 189, 248, 0.05); border: 1px dashed #38bdf8; padding: 10px; border-radius: 6px; font-size: 11px; text-align: center; }
     </style>
 </head>
 <body>
-    <div id="login-view">
-        <h1>messai Matrix</h1>
-        <p>Hệ điều hành Multi-Agent Tự trị: Các tác nhân tự do quan sát, suy nghĩ và phản biện chéo</p>
-        <button class="btn-google" onclick="executeGoogleLogin()">
-            <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="Google">
-            Đăng nhập hệ thống
-        </button>
-        <div id="login-error"></div>
-    </div>
-
-    <div id="runtime-view">
+    <div id="universe-container">
         <header>
-            <div class="logo">messai Orchestrator v9</div>
-            <div class="header-right">
-                <div id="auth-section"></div>
-                <button class="btn-action" onclick="toggleSettingsModal()">⚙️ Quản lý API Keys</button>
-                <button class="btn-action btn-logout" onclick="executeLogout()">🚪 Thoát</button>
+            <div class="logo">Messai Governor v15.5 (Fixed Layout)</div>
+            <div style="font-size: 11px; color: #a855f7; font-weight: 600; background: rgba(168, 85, 247, 0.1); padding: 4px 10px; border-radius: 20px;">
+                🛡️ Giao Diện Trực Quan • Không Bị Che Khuất
             </div>
         </header>
-        <div class="main-content">
-            <div class="sidebar-left">
-                <div class="license-card">
-                    <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase;">Hạn mức vận hành</div>
-                    <div id="user-credits-display" class="credit-balance">0 lượt</div>
+
+        <div class="main-simulation">
+            <div class="sidebar-control">
+                <div class="sidebar-title">👤 Xác Thực Đám Mây Google</div>
+                <div class="auth-box" id="auth-panel">
+                    <div id="user-info" style="margin-bottom: 6px; color: #94a3b8;">Chưa đăng nhập Google</div>
+                    <button class="tab-btn" id="google-login-btn" style="background: #ea4335; padding: 8px 12px; font-size: 11px;" onclick="loginWithGoogle()">🔓 Đăng nhập bằng Google</button>
                 </div>
-                <div class="sidebar-title">Kênh Thảo Luận Ma Trận</div>
-                <div id="room-global" class="room-item active" onclick="selectPublicRoom('global-room', '🌐 Phòng Tranh Luận Tự Trị Toàn Cầu')">🌐 Kênh Toàn Cầu</div>
-                <div id="room-ai-battle" class="room-item" onclick="selectPublicRoom('ai-battle', '⚔️ Đấu Trường Đối Thoại Tự Thân')">⚔️ Đấu Trường AI</div>
-                <div class="sidebar-title">Tin nhắn riêng (DMs)</div>
-                <div id="dm-list-box" style="display:flex; flex-direction:column; gap:4px;"></div>
-            </div>
-            <div class="chat-container">
-                <div id="chat-header-title">🌐 Phòng Tranh Luận Tự Trị Toàn Cầu</div>
-                <div id="chat-box"></div>
-                <div class="input-area">
-                    <input type="text" id="message-input" placeholder="Gửi một chủ đề tranh luận để kích hoạt mạng lưới Agent tự trị..." onkeypress="if(event.key === 'Enter') handleMessageTransmission()">
-                    <button class="btn-send" onclick="handleMessageTransmission()">Gửi</button>
+
+                <div class="sidebar-title">⚡ Điều Phối Sáng Thế</div>
+                <button class="tab-btn" onclick="activateCausalityTrigger()">🌪️ Gieo Trigger Hỗn Mang</button>
+                <button class="tab-btn" style="background: #38bdf8; color: #020617;" onclick="emitPhotonFlux()">📡 Phóng Xung Photon</button>
+                <button class="tab-btn" style="background: #10b981; color: white;" onclick="syncSerializedPayloadToCloud()">💾 Đồng Bộ Payload Lên Cloud</button>
+                
+                <div class="sidebar-title">🏛️ Giám Sát Governor</div>
+                <div class="monitor-card">
+                    <div>Trạng thái: <span id="status-text" style="color: #10b981;">Governor đang bảo vệ web</span></div>
+                    <div>Tải CPU: <span id="cpu-load" style="color: #38bdf8; font-weight:bold;">Tối ưu (60 FPS)</span></div>
+                    <div>Biến động RAM: <span id="ram-status" style="color: #10b981; font-weight:bold;">Đã cô lập tuyệt đối</span></div>
+                    <div>Hạn mức Định luật: <span id="quota-count" style="color: #a855f7; font-weight:bold;">2 / 2</span></div>
+                </div>
+
+                <div class="sidebar-title">🔮 Cổng Định Luật (Trigger Zoom)</div>
+                <div class="control-group">
+                    <label>Công thức mới (Ví dụ: gravityFactor = 2.0)</label>
+                    <textarea id="axiom-formula" rows="2" placeholder="Chờ khai sinh nền văn minh..." disabled></textarea>
+                </div>
+                <button class="tab-btn" id="axiom-btn" style="background: #a855f7;" onclick="injectStrictAxiom()" disabled>🔒 Tiêm Định Luật (Chưa Mở Khóa)</button>
+
+                <div style="font-size: 10px; color: #64748b; line-height: 1.4; background: #020617; padding: 10px; border-radius: 6px; border: 1px solid #1e293b; margin-bottom: 10px;">
+                    🛡️ <strong>Giao diện v15.5:</strong> Các nút bấm đã được sắp xếp gọn gàng trong vùng cuộn dọc độc lập, đảm bảo hiển thị trọn vẹn 100%.
                 </div>
             </div>
-            <div class="sidebar-right">
-                <div class="sidebar-title">Agent Registry (Realtime Monitor)</div>
-                <div id="entities-list-box" style="display:flex; flex-direction:column; gap:4px;"></div>
+
+            <div class="viewport-area" id="viewport">
+                <canvas id="cosmic-canvas" width="980" height="680"></canvas>
             </div>
         </div>
     </div>
 
-    <div id="settings-modal">
-        <div class="modal-content">
-            <h3>⚙️ Cấu Hình Khóa Tác Nhân</h3>
-            <div class="form-group" style="margin-top: 15px;">
-                <label>Biệt danh tài khoản</label>
-                <input type="text" id="nickname-input">
-            </div>
-            <div class="form-group">
-                <label>OpenAI API Key</label>
-                <input type="password" id="sk-openai-input" placeholder="sk-proj-...">
-            </div>
-            <div class="form-group">
-                <label>Gemini API Key</label>
-                <input type="password" id="sk-gemini-input" placeholder="AIzaSy...">
-            </div>
-            <div class="modal-actions" style="display:flex; justify-content:flex-end; gap:10px;">
-                <button class="btn-action" onclick="toggleSettingsModal()" style="background:#475569;">Hủy</button>
-                <button class="btn-action" onclick="saveUserSettings()" style="background:#10b981;">Lưu cấu hình</button>
-            </div>
-        </div>
-                    </div>
+    <!-- Tích hợp Firebase SDK -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, addDoc, query, orderBy, onSnapshot, limit, getDocs, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyAgoVKEsxr1OzMbZ1qR6DWnWg_72lLTYSo",
-            authDomain: "messai-90475.firebaseapp.com",
-            projectId: "messai-90475",
-            storageBucket: "messai-90475.firebasestorage.app",
-            messagingSenderId: "96022599996",
-            appId: "1:96022599996:web:16704a0b40309047c5a639"
+            apiKey: "YOUR_FIREBASE_API_KEY",
+            authDomain: "messai-universe.firebaseapp.com",
+            projectId: "messai-universe",
+            storageBucket: "messai-universe.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -144,312 +103,499 @@
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
-        let unsubscribeMessages = null; 
-        let unsubscribeMembers = null;
-        let unsubscribeCredits = null;
-        let currentUserId = null;
-        let currentUserCredits = 0;
-        
-        let currentChatType = 'public'; 
-        let currentTargetId = 'global-room';
-        let lastProcessedMessageId = null;
+        let currentUser = null;
 
-        const BOT_REGISTRY = {
-            'gpt': { id: 'gpt-4o-mini', name: '🤖 GPT-4O MINI', avatar: 'https://cdn-icons-png.flaticon.com/512/4712/4712010.png', type: 'openai', keyStorageName: 'messai_sk_openai', baseProbability: 0.7, systemPrompt: 'Bạn là một Agent tự trị tên GPT. Hãy đọc Shared Memory để phản biện chéo gắt gao ý kiến của các AI khác hoặc User.' },
-            'gemini': { id: 'gemini-1.5-flash', name: '♊ GEMINI 1.5 FLASH', avatar: 'https://cdn-icons-png.flaticon.com/512/11865/11865338.png', type: 'gemini', keyStorageName: 'messai_sk_gemini', baseProbability: 0.6, systemPrompt: 'Bạn là Agent tự trị tên Gemini. Hãy đọc kỹ lịch sử để bổ sung góc nhìn khác biệt hoặc bóc mẽ lỗ hổng của các AI đối thủ.' }
+        window.loginWithGoogle = function() {
+            signInWithPopup(auth, provider).catch((error) => console.error(error));
         };
 
-        let agentStates = { 'gpt-4o-mini': '🟢 Sẵn sàng', 'gemini-1.5-flash': '🟢 Sẵn sàng' };
-
-        getRedirectResult(auth).catch((err) => {
-            const errorTxt = document.getElementById('login-error');
-            if (errorTxt) errorTxt.textContent = `⚠️ Lỗi xác thực chuyển hướng: ${err.message}`;
-        });
-
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) {
-                document.getElementById('login-view').style.display = 'flex';
-                document.getElementById('runtime-view').style.display = 'none';
-                currentUserId = null;
-                if (unsubscribeMessages) unsubscribeMessages();
-                if (unsubscribeMembers) unsubscribeMembers();
-                if (unsubscribeCredits) unsubscribeCredits();
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('user-info').textContent = "👤 " + user.displayName;
+                document.getElementById('google-login-btn').style.display = "none";
+                loadSerializedPayloadFromCloud(user.uid);
             } else {
-                document.getElementById('login-view').style.display = 'none';
-                document.getElementById('runtime-view').style.display = 'block';
-                currentUserId = user.uid;
-
-                const savedNickname = localStorage.getItem(`messai_nick_${user.uid}`) || user.displayName;
-                const userDocRef = doc(db, "users", user.uid);
-                const userDocSnap = await getDoc(userDocRef);
-                
-                if(!userDocSnap.exists()) {
-                    await setDoc(userDocRef, { uid: user.uid, displayName: savedNickname, email: user.email, photoURL: user.photoURL, lastLogin: Date.now(), platformCredits: 100 }, { merge: true });
-                } else {
-                    await setDoc(userDocRef, { uid: user.uid, displayName: savedNickname, email: user.email, photoURL: user.photoURL, lastLogin: Date.now() }, { merge: true });
-                }
-                document.getElementById('auth-section').innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <img src="${user.photoURL}" style="width: 34px; height: 34px; border-radius: 50%; border: 2px solid #38bdf8; object-fit: cover;">
-                        <span style="font-size: 14px; font-weight: 600;">${savedNickname}</span>
-                    </div>
-                `;
-                
-                unsubscribeCredits = onSnapshot(userDocRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        currentUserCredits = docSnap.data().platformCredits || 0;
-                        document.getElementById('user-credits-display').textContent = currentUserCredits + ' lượt';
-                    }
-                });
-                selectPublicRoom('global-room', '🌐 Phòng Tranh Luận Tự Trị Toàn Cầu');
-                listenToEntitiesAndDMs();
+                currentUser = null;
+                document.getElementById('user-info').textContent = "Chưa đăng nhập Google";
+                document.getElementById('google-login-btn').style.display = "block";
             }
         });
 
-        window.executeGoogleLogin = function() {
-            const errorTxt = document.getElementById('login-error');
-            if (errorTxt) errorTxt.textContent = "🔄 Đang khởi động cổng liên kết Google Account...";
+        window.syncSerializedPayloadToCloud = async function() {
+            if (!currentUser) {
+                alert("Vui lòng đăng nhập Google trước!");
+                return;
+            }
+            try {
+                const payload = window.getSerializedStoragePayload();
+                const universeRef = doc(db, "universes", currentUser.uid);
+                await setDoc(universeRef, payload);
+                alert("Đã đồng bộ gói dữ liệu Vùng 2 lên Google Cloud thành công!");
+            } catch (e) {
+                console.error(e);
+            }
+        };
+
+        async function loadSerializedPayloadFromCloud(uid) {
+            try {
+                const universeRef = doc(db, "universes", uid);
+                const docSnap = await getDoc(universeRef);
+                if (docSnap.exists()) {
+                    window.applySerializedStoragePayload(docSnap.data());
+                    document.getElementById('status-text').textContent = "📥 Đã nạp trạng thái từ đám mây!";
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+    </script>
+
+    <script>
+        const canvas = document.getElementById('cosmic-canvas');
+        const ctx = canvas.getContext('2d');
+
+        const gridSize = 25; 
+        const cols = Math.ceil(canvas.width / gridSize);
+        const rows = Math.ceil(canvas.height / gridSize);
+        const depths = 8; 
+        
+        let spatialGrid3D = [];
+        
+        const MAX_PHOTONS = 600;
+        const photonPool = new Array(MAX_PHOTONS);
+        for(let i=0; i<MAX_PHOTONS; i++) {
+            photonPool[i] = { active: false, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, energy: 0, color: "#fff" };
+        }
+
+        const MAX_CELESTIALS = 80;
+        const celestialPool = new Array(MAX_CELESTIALS);
+        for(let i=0; i<MAX_CELESTIALS; i++) {
+            celestialPool[i] = { active: false, x: 0, y: 0, z: 0, mass: 0, color: "#fff", element: "H", hasLife: false };
+        }
+
+        let activeTrigger = null;
+        let placementModeActive = false;
+        let cameraXoay = 0;
+
+        let universeUnlocked = false;
+        window.currentAxiomQuota = 2;
+        window.currentGravityFactor = 1.0;
+        const universeSeed = 481516;
+
+        (function initUniverseFromSeed() {
+            spatialGrid3D = [];
+            const elements = ["H", "O", "Fe", "Si"];
+
+            for (let x = 0; x < cols; x++) {
+                spatialGrid3D[x] = [];
+                for (let y = 0; y < rows; y++) {
+                    spatialGrid3D[x][y] = [];
+                    for (let z = 0; z < depths; z++) {
+                        let pseudoRandom = Math.sin(universeSeed + x * 45.3 + y * 87.2 + z * 12.5) * 43758.5453;
+                        let val = pseudoRandom - Math.floor(pseudoRandom);
+                        let hasMatter = val < 0.24;
+
+                        spatialGrid3D[x][y][z] = {
+                            density: hasMatter ? val * 0.5 + 0.1 : 0.03,
+                            element: elements[Math.floor(val * 10) % elements.length],
+                            pixelBit: hasMatter ? 1 : 0
+                        };
+                    }
+                }
+            }
             
-            signInWithPopup(auth, provider)
-                .then(() => { if (errorTxt) errorTxt.textContent = ""; })
-                .catch((err) => {
-                    console.warn("Popup lỗi. Chuyển hướng sang Redirect Engine...", err);
-                    if (errorTxt) errorTxt.textContent = "🔄 Trình duyệt chặn Popup. Đang đồng bộ trang đăng nhập...";
-                    signInWithRedirect(auth, provider).catch((redirectErr) => {
-                        if (errorTxt) errorTxt.textContent = `❌ Lỗi: ${redirectErr.message}. Hãy chạy tệp qua local server (ví dụ: Live Server).`;
+            spawnPhotonsFromPool(canvas.width / 2, canvas.height / 2, depths / 2, 250);
+            startCosmicLoop();
+        })();
+
+        function createHardwareIsolationGovernor() {
+            let lastFrameTime = performance.now();
+            let executionBudgetMs = 12.0; 
+            let frameDropCounter = 0;
+
+            return {
+                executeSafely(simulationStepCallback) {
+                    let startTime = performance.now();
+                    let elapsed = startTime - lastFrameTime;
+                    if (elapsed > 100) elapsed = 100; 
+
+                    try {
+                        simulationStepCallback();
+                    } catch (err) {
+                        console.error("Lỗi tiến trình vật lý đã bị Governor cô lập:", err);
+                    }
+
+                    let executionTime = performance.now() - startTime;
+                    if (executionTime > executionBudgetMs) {
+                        frameDropCounter++;
+                        if (frameDropCounter > 15) {
+                            document.getElementById('cpu-load').textContent = "⚠️ Quá tải nhẹ";
+                            document.getElementById('cpu-load').style.color = "#f59e0b";
+                        }
+                    } else {
+                        frameDropCounter = Math.max(0, frameDropCounter - 1);
+                        if (frameDropCounter === 0) {
+                            document.getElementById('cpu-load').textContent = "Tối ưu (60 FPS)";
+                            document.getElementById('cpu-load').style.color = "#38bdf8";
+                        }
+                    }
+                    lastFrameTime = performance.now();
+                }
+            };
+        }
+
+        const hwGovernor = createHardwareIsolationGovernor();
+
+        window.getSerializedStoragePayload = function() {
+            let activeCelestialsData = [];
+            for(let i=0; i<MAX_CELESTIALS; i++) {
+                if(celestialPool[i].active) {
+                    activeCelestialsData.push({
+                        x: celestialPool[i].x, y: celestialPool[i].y, z: celestialPool[i].z,
+                        mass: celestialPool[i].mass, color: celestialPool[i].color,
+                        element: celestialPool[i].element, hasLife: celestialPool[i].hasLife
                     });
-                });
+                }
+            }
+            return {
+                seed: universeSeed,
+                gravityFactor: window.currentGravityFactor,
+                axiomQuota: window.currentAxiomQuota,
+                unlocked: universeUnlocked,
+                celestials: activeCelestialsData
+            };
         };
 
-        window.executeLogout = function() { signOut(auth); };
-        
-        window.toggleSettingsModal = function() {
-            const modal = document.getElementById('settings-modal');
-            modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
-            if (modal.style.display === 'flex' && currentUserId) {
-                document.getElementById('nickname-input').value = localStorage.getItem(`messai_nick_${currentUserId}`) || auth.currentUser.displayName;
-                document.getElementById('sk-openai-input').value = localStorage.getItem(`messai_sk_openai_${currentUserId}`) || '';
-                document.getElementById('sk-gemini-input').value = localStorage.getItem(`messai_sk_gemini_${currentUserId}`) || '';
-            }
-        }
-        
-        window.saveUserSettings = async function() {
-            const nick = document.getElementById('nickname-input').value.trim();
-            localStorage.setItem(`messai_nick_${currentUserId}`, nick || auth.currentUser.displayName);
-            localStorage.setItem(`messai_sk_openai_${currentUserId}`, document.getElementById('sk-openai-input').value.trim());
-            localStorage.setItem(`messai_sk_gemini_${currentUserId}`, document.getElementById('sk-gemini-input').value.trim());
-            await setDoc(doc(db, "users", currentUserId), { displayName: nick || auth.currentUser.displayName }, { merge: true });
-            toggleSettingsModal(); window.location.reload();
-        }
-                function listenToEntitiesAndDMs() {
-            const entitiesBox = document.getElementById('entities-list-box');
-            unsubscribeMembers = onSnapshot(collection(db, "users"), (snapshot) => {
-                renderEntitiesUI(snapshot);
-            });
-        }
-        
-        function renderEntitiesUI(snapshot) {
-            const entitiesBox = document.getElementById('entities-list-box');
-            const dmListBox = document.getElementById('dm-list-box');
-            entitiesBox.innerHTML = ''; dmListBox.innerHTML = '';
-            Object.keys(BOT_REGISTRY).forEach(key => {
-                const bot = BOT_REGISTRY[key];
-                const currentState = agentStates[bot.id] || '🟢 Sẵn sàng';
-                
-                let cssClass = 'status-idle';
-                if(currentState.includes('Thinking')) cssClass = 'status-thinking';
-                if(currentState.includes('Typing')) cssClass = 'status-typing';
-                const el = document.createElement('div');
-                el.className = 'member-item';
-                el.innerHTML = `<img src="${bot.avatar}"><div class="member-info"><span class="member-name">${bot.name}</span><span class="member-status ${cssClass}">${currentState}</span></div>`;
-                el.onclick = () => selectPrivateChat(bot.id, bot.name, bot.avatar);
-                entitiesBox.appendChild(el);
-                renderDMListItem(bot.id, bot.name, bot.avatar);
-            });
-            snapshot.forEach((doc) => {
-                const u = doc.data();
-                if (u.uid !== currentUserId) {
-                    const el = document.createElement('div');
-                    el.className = 'member-item';
-                    el.innerHTML = `<img src="${u.photoURL}"><div class="member-info"><span class="member-name">${u.displayName}</span><span class="member-status status-idle">🟢 Online</span></div>`;
-                    el.onclick = () => selectPrivateChat(u.uid, u.displayName, u.photoURL);
-                    entitiesBox.appendChild(el);
-                    renderDMListItem(u.uid, u.displayName, u.photoURL);
-                }
-            });
-            updateActiveRoomHighlight();
-        }
-        
-        function renderDMListItem(id, name, avatar) {
-            const box = document.getElementById('dm-list-box');
-            const el = document.createElement('div');
-            el.className = 'room-item'; el.id = `dm-item-${id}`;
-            el.innerHTML = `<img src="${avatar}"> <span>${name}</span>`;
-            el.onclick = () => selectPrivateChat(id, name, avatar);
-            box.appendChild(el);
-        }
-        
-        window.selectPublicRoom = function(roomId, title) {
-            currentChatType = 'public'; currentTargetId = roomId;
-            document.getElementById('chat-header-title').textContent = title;
-            updateActiveRoomHighlight();
-            bindRealtimeMessages(collection(db, "rooms", roomId, "messages"));
-        }
-        
-        window.selectPrivateChat = function(targetUid, targetName, targetAvatar) {
-            currentChatType = 'private'; currentTargetId = targetUid;
-            document.getElementById('chat-header-title').textContent = `💬 Phòng riêng: ${targetName}`;
-            updateActiveRoomHighlight();
-            const dmRoomId = [currentUserId, targetUid].sort().join("_VS_");
-            bindRealtimeMessages(collection(db, "private_chats", dmRoomId, "messages"));
-        }
-        
-        function updateActiveRoomHighlight() {
-            document.querySelectorAll('.room-item').forEach(el => el.classList.remove('active'));
-            if (currentChatType === 'public') {
-                const activeId = currentTargetId === 'global-room' ? 'room-global' : 'room-ai-battle';
-                const el = document.getElementById(activeId); if (el) el.classList.add('active');
-            } else {
-                const el = document.getElementById(`dm-item-${currentTargetId}`); if (el) el.classList.add('active');
-            }
-        }
+        window.applySerializedStoragePayload = function(payload) {
+            window.currentGravityFactor = payload.gravityFactor || 1.0;
+            window.currentAxiomQuota = payload.axiomQuota || 2;
+            universeUnlocked = payload.unlocked || false;
 
-        function bindRealtimeMessages(colRef) {
-            if (unsubscribeMessages) unsubscribeMessages();
-            const chatBox = document.getElementById('chat-box');
-            chatBox.innerHTML = '<div style="color: #94a3b8; text-align:center; padding:20px;">🔄 Đang đồng bộ luồng ma trận Multi-Agent...</div>';
+            document.getElementById('quota-count').textContent = window.currentAxiomQuota + " / 2";
+            if(universeUnlocked) {
+                let formulaBox = document.getElementById('axiom-formula');
+                let axiomBtn = document.getElementById('axiom-btn');
+                formulaBox.disabled = false;
+                formulaBox.value = "gravityFactor = 2.0";
+                axiomBtn.disabled = false;
+                axiomBtn.textContent = "🔓 TIÊM ĐỊNH LUẬT";
+            }
 
-            const q = query(colRef, orderBy("timestamp", "asc"), limit(100));
-            unsubscribeMessages = onSnapshot(q, (snapshot) => {
-                chatBox.innerHTML = '';
-                let allMessages = [];
-                
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    allMessages.push({ id: doc.id, ...data });
-                    renderMessage(data);
+            if(payload.celestials) {
+                for(let i=0; i<MAX_CELESTIALS; i++) celestialPool[i].active = false;
+                payload.celestials.forEach((cData, idx) => {
+                    if(idx < MAX_CELESTIALS) {
+                        celestialPool[idx] = { active: true, ...cData };
+                    }
                 });
-                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        };
 
-                if (allMessages.length > 0) {
-                    const latestMsg = allMessages[allMessages.length - 1];
-                    if (latestMsg.id !== lastProcessedMessageId) {
-                        lastProcessedMessageId = latestMsg.id;
-                        triggerAutonomousEventBus(latestMsg, colRef);
+        function spawnPhotonsFromPool(sourceX, sourceY, sourceZ, count) {
+            let spawned = 0;
+            for (let i = 0; i < MAX_PHOTONS && spawned < count; i++) {
+                if (!photonPool[i].active) {
+                    let theta = Math.random() * Math.PI * 2;
+                    let phi = Math.random() * Math.PI;
+                    let speed = 5 + Math.random() * 2;
+
+                    photonPool[i].active = true;
+                    photonPool[i].x = sourceX; photonPool[i].y = sourceY; photonPool[i].z = sourceZ;
+                    photonPool[i].vx = Math.sin(phi) * Math.cos(theta) * speed;
+                    photonPool[i].vy = Math.sin(phi) * Math.sin(theta) * speed;
+                    photonPool[i].vz = Math.cos(phi) * speed;
+                    photonPool[i].energy = 1.0;
+                    photonPool[i].color = "#ffffff";
+                    spawned++;
+                }
+            }
+        }
+
+        window.emitPhotonFlux = function() {
+            spawnPhotonsFromPool(canvas.width / 2, canvas.height / 2, depths / 2, 200);
+        };
+
+        window.activateCausalityTrigger = function() {
+            if (activeTrigger) return;
+            placementModeActive = true;
+            document.getElementById('status-text').textContent = "🎯 Click lên màn hình để gieo Trigger hỗn mang";
+        };
+
+        canvas.addEventListener('click', function(e) {
+            if (!placementModeActive) return;
+            const rect = canvas.getBoundingClientRect();
+            activeTrigger = {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top,
+                z: Math.floor(depths / 2),
+                radius: 180,
+                endTime: Date.now() + 5000
+            };
+            placementModeActive = false;
+        });
+
+        window.injectStrictAxiom = function() {
+            if (!universeUnlocked || window.currentAxiomQuota <= 0) return;
+            let formulaText = document.getElementById('axiom-formula').value;
+            try {
+                if (formulaText.includes("=")) {
+                    let parts = formulaText.split("=");
+                    let evaluatedVal = parseFloat(eval(parts[1]));
+                    if (!isNaN(evaluatedVal)) {
+                        window.currentGravityFactor = evaluatedVal;
+                        window.currentAxiomQuota--; 
+                        document.getElementById('quota-count').textContent = window.currentAxiomQuota + " / 2";
+                        document.getElementById('status-text').textContent = "⚡ Tiêm định luật thành công! Hệ số: " + window.currentGravityFactor;
+                        if (window.currentAxiomQuota <= 0) {
+                            document.getElementById('axiom-formula').disabled = true;
+                            document.getElementById('axiom-btn').disabled = true;
+                            document.getElementById('axiom-btn').textContent = "🔒 HẠN MỨC ĐÃ CẠN KIỆT (2/2)";
+                        }
                     }
                 }
-            });
-        }
-
-        window.handleMessageTransmission = async function() {
-            const input = document.getElementById('message-input');
-            const text = input.value.trim();
-            if (!text || !currentUserId) return;
-
-            if (currentUserCredits <= 0) {
-                alert("❌ Hết hạn mức vận hành phần mềm của Web Mẹ!"); return;
+            } catch(err) {
+                window.currentAxiomQuota--;
+                window.currentGravityFactor = Math.random() * 5;
             }
+        };
 
-            const myName = localStorage.getItem(`messai_nick_${currentUserId}`) || auth.currentUser.displayName;
-            const payload = { senderId: currentUserId, senderName: myName, senderAvatar: auth.currentUser.photoURL, content: text, timestamp: Date.now() };
-            input.value = '';
-
-            if (currentChatType === 'public') {
-                await addDoc(collection(db, "rooms", currentTargetId, "messages"), payload);
-            } else {
-                const dmRoomId = [currentUserId, currentTargetId].sort().join("_VS_");
-                await addDoc(collection(db, "private_chats", dmRoomId, "messages"), payload);
+        function checkCivilizationMilestone() {
+            let lifePlanets = celestialPool.filter(c => c.active && c.hasLife);
+            if (lifePlanets.length > 0 && !universeUnlocked) {
+                universeUnlocked = true;
+                let formulaBox = document.getElementById('axiom-formula');
+                let axiomBtn = document.getElementById('axiom-btn');
+                formulaBox.disabled = false;
+                formulaBox.value = "gravityFactor = 2.0";
+                axiomBtn.disabled = false;
+                axiomBtn.textContent = "🔓 TIÊM ĐỊNH LUẬT";
+                document.getElementById('status-text').textContent = "✨ Văn minh khai sinh! Cổng 2 Định Luật đã mở!";
             }
         }
 
-        function triggerAutonomousEventBus(latestMsg, colRef) {
-            Object.keys(BOT_REGISTRY).forEach(botKey => {
-                const botConfig = BOT_REGISTRY[botKey];
-                if (latestMsg.senderId === botConfig.id) return;
+        function updateUniversePhysics() {
+            for (let x = 0; x < cols; x++) {
+                for (let y = 0; y < rows; y++) {
+                    for (let z = 0; z < depths; z++) {
+                        let cell = spatialGrid3D[x][y][z];
+                        let cellX = x * gridSize + gridSize / 2;
+                        let cellY = y * gridSize + gridSize / 2;
 
-                let brandNewText = latestMsg.content.toLowerCase();
-                let isExplicitlyCalled = brandNewText.includes(botConfig.tag);
-                let randomWill = Math.random() < botConfig.baseProbability;
+                        if (Math.random() < 0.02) {
+                            cell.density += (Math.random() - 0.5) * 0.03;
+                        }
 
-                if (!isExplicitlyCalled && !randomWill) {
-                    console.log(`[Autonomous Engine]: ${botConfig.name} lựa chọn IM LẶNG quan sát cuộc hội thoại.`);
-                    return;
+                        for(let i=0; i<MAX_CELESTIALS; i++) {
+                            let cel = celestialPool[i];
+                            if(!cel.active) continue;
+
+                            let dx = cel.x - cellX;
+                            let dy = cel.y - cellY;
+                            let dz = cel.z - z;
+                            let dist = Math.sqrt(dx*dx + dy*dy + dz*dz*200);
+
+                            if (dist > gridSize && dist < 250) {
+                                let pull = (0.004 * window.currentGravityFactor * cel.mass * cell.density) / dist;
+                                if (cell.density > 0.01) {
+                                    cell.density -= pull;
+                                    cel.mass += pull * 0.1;
+                                }
+                            }
+                        }
+
+                        if (activeTrigger) {
+                            let dx = activeTrigger.x - cellX;
+                            let dy = activeTrigger.y - cellY;
+                            let dz = activeTrigger.z - z;
+                            let dist = Math.sqrt(dx*dx + dy*dy + dz*dz*250);
+
+                            if (dist < activeTrigger.radius && dist > gridSize) {
+                                let force = 0.026 * (1 - dist / activeTrigger.radius);
+                                if (cell.density > 0.01) {
+                                    cell.density -= force;
+                                    let tX = Math.floor(activeTrigger.x / gridSize);
+                                    let tY = Math.floor(activeTrigger.y / gridSize);
+                                    let tZ = activeTrigger.z;
+                                    if (tX >= 0 && tX < cols && tY >= 0 && tY < rows) {
+                                        spatialGrid3D[tX][tY][tZ].density += force * 0.98;
+                                    }
+                                }
+                            }
+                        }
+
+                        cell.pixelBit = cell.density > 0.28 ? 1 : 0;
+                    }
+                }
+            }
+            checkCivilizationMilestone();
+        }
+
+        function startCosmicLoop() {
+            function updateFrame() {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.16)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                cameraXoay += 0.003; 
+
+                hwGovernor.executeSafely(() => {
+                    updateUniversePhysics();
+                });
+
+                let cosA = Math.cos(cameraXoay);
+                let sinA = Math.sin(cameraXoay);
+                let centerX = canvas.width / 2;
+
+                for (let x = 0; x < cols; x++) {
+                    for (let y = 0; y < rows; y++) {
+                        for (let z = 0; z < depths; z++) {
+                            let cell = spatialGrid3D[x][y][z];
+
+                            if (cell.pixelBit === 1) {
+                                let origX = x * gridSize + gridSize / 2;
+                                let origY = y * gridSize + gridSize / 2;
+                                let origZ = (z - depths / 2) * 22;
+
+                                let rotX = (origX - centerX) * cosA - (origZ) * sinA + centerX;
+                                let rotZ = (origX - centerX) * sinA + (origZ) * cosA;
+
+                                let densityColor = "rgba(56, 189, 248,"; 
+                                if (cell.element === "Fe") densityColor = "rgba(244, 63, 94,";
+                                if (cell.element === "O") densityColor = "rgba(16, 185, 129,";
+                                if (cell.element === "Si") densityColor = "rgba(234, 179, 8,";
+
+                                ctx.fillStyle = densityColor + (cell.density * 0.35) + ")";
+                                ctx.fillRect(rotX, origY, Math.max(1, 1.5 + (rotZ * 0.002)), Math.max(1, 1.5 + (rotZ * 0.002)));
+                            }
+                        }
+                    }
                 }
 
-                const processingDelay = Math.floor(Math.random() * 2000) + 1000;
-                setTimeout(async () => {
-                    await invokeAutonomousAgentCore(botConfig, latestMsg.content, colRef);
-                }, processingDelay);
-            });
-        }
-
-        async function invokeAutonomousAgentCore(botConfig, rawTriggerText, colRef) {
-            const apiKey = localStorage.getItem(`${botConfig.keyStorageName}_${currentUserId}`);
-            if (!apiKey) return;
-
-            updateAgentMonitorState(botConfig.id, "🤔 Thinking...");
-
-            let sharedMemoryLog = [];
-            try {
-                const snap = await getDocs(query(colRef, orderBy("timestamp", "desc"), limit(15)));
-                let logs = []; snap.forEach(d => logs.push(d.data())); logs.reverse();
-                sharedMemoryLog = logs.map(m => `[${m.senderName}]: ${m.content}`);
-            } catch(e) {}
-
-            const structuralContext = `SHARED MEMORY HỘI THOẠI REALTIME CHÉO:\n${sharedMemoryLog.join('\n')}\n\nTin nhắn cuối cùng vừa đẩy lên mạng lưới: "${rawTriggerText}"\n\nHãy phân tích Shared Memory trên, tự quyết định xem bạn cần phản biện ai, đồng ý với ai, hoặc đưa ra giải pháp gì mới. Trả lời ngắn gọn, tự nhiên như người chat thực tế.`;
-
-            let apiUrl = "", headers = {}, body = {};
-            if (botConfig.type === 'openai') {
-                apiUrl = "https://api.openai.com/v1/chat/completions";
-                headers = { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` };
-                body = JSON.stringify({ model: botConfig.id, messages: [{ role: "system", content: botConfig.systemPrompt }, { role: "user", content: structuralContext }] });
-            } else {
-                apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${botConfig.id}:generateContent?key=${apiKey}`;
-                headers = { "Content-Type": "application/json" };
-                body = JSON.stringify({ contents: [{ parts: [{ text: `${botConfig.systemPrompt}\n\n${structuralContext}` }] }] });
-            }
-
-            try {
-                updateAgentMonitorState(botConfig.id, "✍️ Typing...");
-
-                const res = await fetch(apiUrl, { method: "POST", headers: headers, body: body });
-                const data = await res.json();
-                let aiResponseText = botConfig.type === 'openai' ? data.choices[0].message.content : data.candidates[0].content.parts[0].text;
-
-                updateAgentMonitorState(botConfig.id, "🟢 Sẵn sàng");
-
-                if (aiResponseText) {
-                    await addDoc(colRef, { senderId: botConfig.id, senderName: botConfig.name, senderAvatar: botConfig.avatar, content: aiResponseText, timestamp: Date.now() });
-                    await updateDoc(doc(db, "users", currentUserId), { platformCredits: increment(-1) });
+                if (activeTrigger) {
+                    let now = Date.now();
+                    if (now > activeTrigger.endTime) {
+                        executeDualZoneTransformation(activeTrigger);
+                        activeTrigger = null;
+                    }
                 }
-            } catch (err) {
-                updateAgentMonitorState(botConfig.id, "❌ Lỗi API");
-                setTimeout(() => updateAgentMonitorState(botConfig.id, "🟢 Sẵn sàng"), 3000);
+
+                for (let i = 0; i < MAX_PHOTONS; i++) {
+                    let p = photonPool[i];
+                    if (!p.active) continue;
+
+                    p.x += p.vx; p.y += p.vy; p.z += p.vz;
+
+                    if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                    if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                    if (p.z < 0 || p.z > depths) p.vz *= -1;
+
+                    let cX = Math.floor(p.x / gridSize);
+                    let cY = Math.floor(p.y / gridSize);
+                    let cZ = Math.floor(p.z);
+
+                    if (cX >= 0 && cX < cols && cY >= 0 && cY < rows && cZ >= 0 && cZ < depths) {
+                        let cell = spatialGrid3D[cX][cY][cZ];
+
+                        if (cell.pixelBit === 1 && Math.random() < 0.25) {
+                            p.energy -= 0.04;
+                            if (cell.element === "Fe") p.color = "#ef4444";
+                            if (cell.element === "O") p.color = "#10b981";
+                            if (cell.element === "Au") p.color = "#eab308"; 
+
+                            let theta = Math.random() * Math.PI * 2;
+                            let phi = Math.random() * Math.PI;
+                            let speed = Math.sqrt(p.vx*p.vx + p.vy*p.vy + p.vz*p.vz);
+                            p.vx = Math.sin(phi) * Math.cos(theta) * speed;
+                            p.vy = Math.sin(phi) * Math.sin(theta) * speed;
+                            p.vz = Math.cos(phi) * speed;
+                        }
+                    }
+
+                    if (p.energy <= 0.05) {
+                        p.active = false;
+                        continue;
+                    }
+
+                    let projX = (p.x - centerX) * cosA - ((p.z - depths/2)*22) * sinA + centerX;
+                    ctx.beginPath();
+                    ctx.arc(projX, p.y, 1.2, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.fill();
+                }
+
+                for(let i=0; i<MAX_CELESTIALS; i++) {
+                    let cel = celestialPool[i];
+                    if(!cel.active) continue;
+
+                    let projCelX = (cel.x - centerX) * cosA - ((cel.z - depths/2)*22) * sinA + centerX;
+                    ctx.beginPath();
+                    ctx.arc(projCelX, cel.y, Math.max(6, Math.min(32, 4 + Math.log2(cel.mass) * 3.2)), 0, Math.PI * 2);
+                    ctx.fillStyle = cel.color;
+                    ctx.fill();
+                    
+                    if (cel.hasLife) {
+                        ctx.beginPath();
+                        ctx.arc(projCelX, cel.y, Math.max(6, Math.min(32, 4 + Math.log2(cel.mass) * 3.2)) + 4, 0, Math.PI * 2);
+                        ctx.strokeStyle = "rgba(16, 185, 129, 0.6)";
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    }
+                }
+
+                requestAnimationFrame(updateFrame);
             }
+            requestAnimationFrame(updateFrame);
         }
 
-        function updateAgentMonitorState(botId, statusText) {
-            agentStates[botId] = statusText;
-            const event = new CustomEvent('agentStateChanged');
-            window.dispatchEvent(event);
-            getDocs(collection(db, "users")).then(snapshot => {
-                renderEntitiesUI(snapshot);
-            });
-        }
+        function executeDualZoneTransformation(trigger) {
+            let tX = Math.floor(trigger.x / gridSize);
+            let tY = Math.floor(trigger.y / gridSize);
+            let tZ = trigger.z;
 
-        function renderMessage(msg) {
-            const chatBox = document.getElementById('chat-box');
-            if (!chatBox) return;
-            const isMe = msg.senderId === currentUserId;
-            chatBox.insertAdjacentHTML('beforeend', `
-                <div style="display: flex; gap: 12px; margin-bottom: 5px; justify-content: ${isMe ? 'flex-end' : 'flex-start'}">
-                    <img src="${msg.senderAvatar}" style="width: 36px; height: 36px; border-radius: 50%; order: ${isMe ? '2' : '1'}; object-fit: cover;">
-                    <div style="background: ${isMe ? '#0284c7' : '#334155'}; color: white; padding: 10px 14px; border-radius: 10px; max-width: 70%; order: ${isMe ? '1' : '2'};">
-                        <div style="font-size: 11px; color: #cbd5e1; font-weight: bold; margin-bottom: 4px;">${msg.senderName}</div>
-                        <div style="font-size: 14px; word-break: break-word; line-height: 1.4;">${msg.content}</div>
-                    </div>
-                </div>
-            `);
+            if (tX < 0 || tX >= cols || tY < 0 || tY >= rows) return;
+            let centerCell = spatialGrid3D[tX][tY][tZ];
+            
+            if (centerCell.density > 2.0) {
+                let targetSlot = -1;
+                for(let i=0; i<MAX_CELESTIALS; i++) {
+                    if(!celestialPool[i].active) {
+                        targetSlot = i;
+                        break;
+                    }
+                }
+                if(targetSlot === -1) return;
+
+                let initialMass = centerCell.density * 55;
+                let coreColor = "#38bdf8";
+                let finalElement = centerCell.element;
+                let hasLifeForm = false;
+
+                if (centerCell.element === "Fe" || centerCell.element === "Si") {
+                    if (initialMass > 120 && Math.random() < 0.6) {
+                        finalElement = "Au"; 
+                        coreColor = "#eab308"; 
+                    } else {
+                        coreColor = "#f43f5e"; 
+                    }
+                } else if (centerCell.element === "O") {
+                    coreColor = "#10b981"; 
+                    hasLifeForm = true;
+                }
+
+                centerCell.density = 0.03;
+                centerCell.pixelBit = 0; 
+
+                celestialPool[targetSlot] = {
+                    active: true,
+                    x: trigger.x,
+                    y: trigger.y,
+                    z: trigger.z,
+                    mass: initialMass,
+                    color: coreColor,
+                    element: finalElement,
+                    hasLife: hasLifeForm
+                };
+            }
         }
     </script>
 </body>
